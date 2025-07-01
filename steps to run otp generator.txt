@@ -1,0 +1,5 @@
+
+Redis-server  -cmd in administrator
+netstat -ano | findstr :5000   -cmd—step1
+taskkill /PID <PID> /F -cmd—step2
+node server.js

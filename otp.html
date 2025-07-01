@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification via Twilio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
+</head>
+<body class="flex justify-center items-center h-screen w-screen overflow-hidden bg-gray-100 font-sans">
+    <div class="flex items-center justify-center bg-gray-100">
+        <div class="h-screen bg-white rounded-xl">
+            <!-- Logo Section -->
+            <div class="text-center">
+                <img src="paw print.jpg" alt="Paw Print Logo" class="h2 inline-block">
+            </div>
+        
+        <div class="flex bg-white rounded-lg p-6 w-[800px]">
+            
+            <!-- Left Section: Image -->
+            <div class="w-3/4 flex items-center justify-center">
+                <img src="otp.jpg" alt="Image" class="max-w-[80%] rounded-lg">
+            </div>
+    
+    <div class="flex items-center justify-center">
+        <div class="bg-white rounded-xl p-5 shadow-lg w-[410px]">
+            <!-- Title -->
+            <h2 class="text-2xl font-bold text-center mb-10">OTP Verification</h2>
+            
+            <!-- Phone Input with Country Flags -->
+            <div class="mt-4 w-full">
+                <label class="block text-gray-700 font-medium">Phone Number</label>
+                <div class="relative w-full">
+                <input type="tel" id="phone" placeholder="Enter phone number"
+                    class="w-full py-2 mt-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Send OTP Button -->
+            <button id="send-otp" 
+                class="w-3/4 bg-orange-500 text-white py-2 rounded-md font-semibold hover:bg-orange-600 transition mt-4">
+                Send OTP
+            </button>
+
+            <!-- OTP Input -->
+            <div class="mt-6">
+                <label class="block text-gray-700 font-medium">Enter OTP</label>
+                <input type="text" id="otp" placeholder="Enter OTP"
+                    class="w-3/4 px-4 py-2 mt-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+
+            <!-- Verify OTP Button -->
+            <button id="verify-otp" 
+                class="w-3/4 bg-orange-500 text-white py-2 rounded-md font-semibold hover:bg-orange-600 transition mt-4">
+                Verify OTP
+            </button>
+
+            <!-- Message -->
+            <p id="message" class="text-center text-red-500 mt-4"></p>
+        </div>
+    </div>
+
+    <!-- intl-tel-input JS for Country Code Selection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+    
+    <script>
+        var phoneInput = document.querySelector("#phone");
+        var iti = window.intlTelInput(phoneInput, {
+            initialCountry: "in",
+            separateDialCode: true,
+            preferredCountries: ["in", "us", "gb", "ca", "au"],
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+            
+        });
+       
+
+
+        // Send OTP
+        document.querySelector("#send-otp").addEventListener("click", async function() {
+            var fullPhoneNumber = iti.getNumber();
+            try {
+                let response = await fetch("http://localhost:5000/send-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone: fullPhoneNumber })
+                });
+
+                let data = await response.json();
+                document.querySelector("#message").innerText = data.message;
+            } catch (error) {
+                console.error("Error sending OTP:", error);
+                document.querySelector("#message").innerText = "Failed to send OTP!";
+            }
+        });
+
+        // Verify OTP
+        document.querySelector("#verify-otp").addEventListener("click", async function() {
+            var fullPhoneNumber = iti.getNumber();
+            var otp = document.querySelector("#otp").value;
+
+            if (!fullPhoneNumber || !otp) {
+                document.querySelector("#message").innerText = "Phone number and OTP are required!";
+                return;
+            }
+
+            try {
+                let response = await fetch("http://localhost:5000/verify-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone: fullPhoneNumber, otp: otp })
+                });
+
+                let data = await response.json();
+                document.querySelector("#message").innerText = data.message;
+            } catch (error) {
+                console.error("Error verifying OTP:", error);
+                document.querySelector("#message").innerText = "Failed to verify OTP!";
+            }
+        });
+    </script>
+
+</body>
+</html>
